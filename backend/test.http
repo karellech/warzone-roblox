@@ -1,0 +1,36 @@
+### 1. Créer une partie
+POST http://localhost:8000/api/matches
+X-API-Key: mon-secret-local
+Content-Type: application/json
+
+{}
+
+### 2. Kills — remplace TON-MATCH-ID par l'UUID reçu au-dessus
+POST http://localhost:8000/api/matches/TON-MATCH-ID/kills
+X-API-Key: mon-secret-local
+Content-Type: application/json
+
+[
+  {"killer_roblox_id": 111, "victim_roblox_id": 222, "weapon": "sword"},
+  {"killer_roblox_id": 222, "victim_roblox_id": 111, "weapon": "gun"},
+  {"killer_roblox_id": 111, "victim_roblox_id": 333, "weapon": "sword"}
+]
+
+### 3. Terminer la partie
+POST http://localhost:8000/api/matches/TON-MATCH-ID/end
+X-API-Key: mon-secret-local
+Content-Type: application/json
+
+{"winning_team": "red", "duration_seconds": 300}
+
+### 4. Leaderboard
+GET http://localhost:8000/api/leaderboard
+
+### 5. Stats joueur
+GET http://localhost:8000/api/players/111/stats
+
+### 6. Test sécurité — doit faire 401
+POST http://localhost:8000/api/matches
+Content-Type: application/json
+
+{}
