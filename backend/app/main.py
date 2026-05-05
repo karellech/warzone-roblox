@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app import models  # noqa: F401 — nécessaire pour que SQLAlchemy détecte les tables
-from routers import players, matches, leaderboard
+from app.routers import players, matches, leaderboard
 
 # Crée toutes les tables si elles n'existent pas encore
 Base.metadata.create_all(bind=engine)

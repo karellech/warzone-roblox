@@ -5,7 +5,7 @@ from uuid import UUID
 from app.database import get_db
 from app.dependencies import verify_roblox_key
 from app import models, schemas
-from routers.players import compute_grade
+from app.routers.players import compute_grade
 
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 
