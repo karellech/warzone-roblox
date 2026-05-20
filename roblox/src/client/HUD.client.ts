@@ -52,6 +52,9 @@ updateHUDEvent.OnClientEvent.Connect((rouge: number, bleu: number, state: string
     if (state === "LOBBY") {
         statusLabel.Text = "⏳ Lobby...";
         statusLabel.TextColor3 = Color3.fromRGB(255, 255, 0);
+    } else if (state === "SOLO") {
+        statusLabel.Text = "🔓 Mode solo : personne d'autre n'est arrivé";
+        statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255);
     } else if (state.sub(1, 5) === "MATCH") {
         const parts = state.split(":");
         const timeLeft = tonumber(parts[1]) ?? 0;
