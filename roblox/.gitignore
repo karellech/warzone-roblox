@@ -1,0 +1,18 @@
+# Dépendances
+node_modules/
+
+# Compilation roblox-ts
+out/
+
+# Cache TypeScript
+*.tsbuildinfo
+
+# Rojo
+*.rbxlx
+*.rbxl
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
