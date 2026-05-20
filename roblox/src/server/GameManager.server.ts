@@ -1,7 +1,7 @@
 import { HttpService, Players, ReplicatedStorage, Teams } from "@rbxts/services";
 
 const LOBBY_DURATION = 15;
-const MATCH_DURATION = 20;
+const MATCH_DURATION = 200;
 const RESPAWN_DELAY = 3;
 const API_URL = "https://factsheet-barmaid-festival.ngrok-free.dev";
 const API_KEY = "warzone-secret-key";
@@ -12,6 +12,7 @@ let matchRunning = false;
 let waitingForPlayers = false;
 let soloMode = false;
 const MIN_PLAYERS_TO_MATCH = 2;
+let matchTimeLeft = MATCH_DURATION;
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ function connectPlayer(player: Player) {
 
         const rouge = scores.get("Rouge") ?? 0;
         const bleu = scores.get("Bleu") ?? 0;
-        fireHUD(rouge, bleu, "MATCH:0");
+        fireHUD(rouge, bleu, `MATCH:${matchTimeLeft}`);
 
         task.delay(RESPAWN_DELAY, () => {
             if (!matchRunning) return;
@@ -292,9 +293,11 @@ function runMatch() {
 
     // Boucle de temps
     let timeLeft = MATCH_DURATION;
+    matchTimeLeft = timeLeft;
     while (timeLeft > 0) {
         task.wait(1);
         timeLeft -= 1;
+        matchTimeLeft = timeLeft;
         const rouge = scores.get("Rouge") ?? 0;
         const bleu = scores.get("Bleu") ?? 0;
         fireHUD(rouge, bleu, `MATCH:${timeLeft}`);
