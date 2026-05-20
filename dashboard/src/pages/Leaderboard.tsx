@@ -1,85 +1,121 @@
-// src/pages/Leaderboard.tsx
 import { useEffect, useState } from "react";
-import { getLeaderboard, gradeColor, kdRatio } from "../services/api";
 import type { LeaderboardEntry } from "../services/api";
+import { getLeaderboard, GRADE_COLORS } from "../services/api";
 
 export default function Leaderboard() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState<string | null>(null);
+  const [all, setAll]       = useState<LeaderboardEntry[]>([]);
+  const [filtered, setFiltered] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    getLeaderboard(50)
-      .then(setEntries)
-      .catch(() => setError("Impossible de charger le classement."))
+    getLeaderboard(100)
+      .then(d => { setAll(d); setFiltered(d); })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-center text-gray-400 mt-16">Chargement...</p>;
-  if (error)   return <p className="text-center text-red-400 mt-16">{error}</p>;
+  function filter(q: string) {
+    setFiltered(q ? all.filter(p => p.username.toLowerCase().includes(q.toLowerCase())) : all);
+  }
+
+  const tdStyle = { padding: "13px 20px", fontSize: 13, borderBottom: "1px solid var(--border)" };
+  const thStyle = {
+    fontFamily: "'Share Tech Mono', monospace", fontSize: 10, letterSpacing: 2,
+    color: "var(--muted)", textTransform: "uppercase" as const,
+    padding: "12px 20px", textAlign: "left" as const,
+    borderBottom: "1px solid var(--border)", background: "rgba(255,255,255,0.02)",
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-6">
-        🏆 Classement mondial
-      </h1>
+    <div style={{ padding: 32 }}>
+      <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Classement Global</span>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <input
+              onChange={e => filter(e.target.value)}
+              placeholder="Rechercher un joueur..."
+              style={{
+                background: "var(--bg3)", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 6, padding: "6px 12px", color: "var(--text)",
+                fontSize: 12, outline: "none", width: 200,
+              }}
+            />
+            <span style={{
+              fontFamily: "'Share Tech Mono',monospace", fontSize: 10, padding: "4px 10px",
+              borderRadius: 3, background: "rgba(255,45,45,0.15)", color: "var(--red)",
+              border: "1px solid rgba(255,45,45,0.3)",
+            }}>{filtered.length} joueurs</span>
+          </div>
+        </div>
 
-      <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-700 text-gray-300 uppercase text-xs">
-              <th className="px-4 py-3 text-left">#</th>
-              <th className="px-4 py-3 text-left">Joueur</th>
-              <th className="px-4 py-3 text-left">Grade</th>
-              <th className="px-4 py-3 text-right">Kills</th>
-              <th className="px-4 py-3 text-right">Morts</th>
-              <th className="px-4 py-3 text-right">K/D</th>
-              <th className="px-4 py-3 text-right">Parties</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e) => (
-              <tr
-                key={e.roblox_user_id}
-                className="border-t border-gray-700 hover:bg-gray-750 transition-colors"
-              >
-                {/* Rang avec médaille pour le top 3 */}
-                <td className="px-4 py-3 font-bold text-gray-400">
-                  {e.rank === 1 ? "🥇" : e.rank === 2 ? "🥈" : e.rank === 3 ? "🥉" : e.rank}
-                </td>
-
-                <td className="px-4 py-3 font-semibold text-white">
-                  {e.username}
-                </td>
-
-                {/* Badge de grade coloré */}
-                <td className="px-4 py-3">
-                  <span className={`text-white text-xs font-bold px-2 py-1 rounded-full ${gradeColor[e.grade] ?? "bg-gray-500"}`}>
-                    {e.grade}
-                  </span>
-                </td>
-
-                <td className="px-4 py-3 text-right text-green-400 font-mono">
-                  {e.total_kills}
-                </td>
-                <td className="px-4 py-3 text-right text-red-400 font-mono">
-                  {e.total_deaths}
-                </td>
-                <td className="px-4 py-3 text-right text-yellow-400 font-mono font-bold">
-                  {kdRatio(e.total_kills, e.total_deaths)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-300 font-mono">
-                  {e.total_matches}
-                </td>
+        {loading ? (
+          <div style={{ padding: 48, textAlign: "center", color: "var(--muted)", fontFamily: "'Share Tech Mono',monospace", letterSpacing: 2 }}>CHARGEMENT...</div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>#</th>
+                <th style={thStyle}>Joueur</th>
+                <th style={thStyle}>Grade</th>
+                <th style={thStyle}>Kills</th>
+                <th style={thStyle}>Morts</th>
+                <th style={thStyle}>K/D</th>
+                <th style={thStyle}>Parties</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {entries.length === 0 && (
-          <p className="text-center text-gray-500 py-12">
-            Aucun joueur enregistré pour l'instant.
-          </p>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ padding: 48, textAlign: "center", color: "var(--muted)", fontFamily: "'Share Tech Mono',monospace", fontSize: 12 }}>AUCUN JOUEUR</td></tr>
+              ) : filtered.map(p => (
+                <tr key={p.roblox_user_id} style={{ transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <td style={tdStyle}>
+                    <span style={{
+                      fontFamily: "'Share Tech Mono',monospace",
+                      color: p.rank === 1 ? "var(--gold)" : p.rank === 2 ? "#C0C0C0" : p.rank === 3 ? "#CD7F32" : "var(--muted)",
+                      fontSize: p.rank <= 3 ? 16 : 14,
+                    }}>
+                      {p.rank === 1 ? "🥇" : p.rank === 2 ? "🥈" : p.rank === 3 ? "🥉" : p.rank}
+                    </span>
+                  </td>
+                  <td style={tdStyle}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 8, background: "var(--bg4)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontFamily: "'Rajdhani',sans-serif", fontSize: 14, fontWeight: 700,
+                        color: "var(--red)", border: "1px solid var(--border)", flexShrink: 0,
+                      }}>{p.username[0].toUpperCase()}</div>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{p.username}</span>
+                    </div>
+                  </td>
+                  <td style={tdStyle}>
+                    <span style={{
+                      fontFamily: "'Share Tech Mono',monospace", fontSize: 9,
+                      padding: "3px 8px", borderRadius: 3, textTransform: "uppercase",
+                      ...(GRADE_COLORS[p.grade] ? {} : {}),
+                    }}>
+                      {p.grade === "Recrue"     && <span style={{ background: "rgba(107,122,141,0.2)", color: "#6B7A8D",        border: "1px solid rgba(107,122,141,0.3)", padding: "3px 8px", borderRadius: 3, fontSize: 9, fontFamily: "'Share Tech Mono',monospace" }}>{p.grade}</span>}
+                      {p.grade === "Soldat"     && <span style={{ background: "rgba(45,142,255,0.15)", color: "var(--blue)",    border: "1px solid rgba(45,142,255,0.3)",  padding: "3px 8px", borderRadius: 3, fontSize: 9, fontFamily: "'Share Tech Mono',monospace" }}>{p.grade}</span>}
+                      {p.grade === "Sergent"    && <span style={{ background: "rgba(255,184,0,0.15)",  color: "var(--gold)",    border: "1px solid rgba(255,184,0,0.3)",   padding: "3px 8px", borderRadius: 3, fontSize: 9, fontFamily: "'Share Tech Mono',monospace" }}>{p.grade}</span>}
+                      {p.grade === "Lieutenant" && <span style={{ background: "rgba(156,111,255,0.15)",color: "var(--purple)",  border: "1px solid rgba(156,111,255,0.3)", padding: "3px 8px", borderRadius: 3, fontSize: 9, fontFamily: "'Share Tech Mono',monospace" }}>{p.grade}</span>}
+                      {p.grade === "Général"    && <span style={{ background: "rgba(255,45,45,0.15)",  color: "var(--red)",     border: "1px solid rgba(255,45,45,0.3)",   padding: "3px 8px", borderRadius: 3, fontSize: 9, fontFamily: "'Share Tech Mono',monospace" }}>{p.grade}</span>}
+                    </span>
+                  </td>
+                  <td style={tdStyle}><span style={{ color: "var(--green)", fontFamily: "'Share Tech Mono',monospace" }}>{p.total_kills}</span></td>
+                  <td style={tdStyle}><span style={{ color: "var(--red)",   fontFamily: "'Share Tech Mono',monospace" }}>{p.total_deaths}</span></td>
+                  <td style={tdStyle}>
+                    <span style={{
+                      fontFamily: "'Share Tech Mono',monospace", fontWeight: 700,
+                      color: p.kd_ratio >= 2 ? "var(--green)" : p.kd_ratio >= 1 ? "var(--gold)" : "var(--red)",
+                    }}>{p.kd_ratio.toFixed(2)}</span>
+                  </td>
+                  <td style={{ ...tdStyle, color: "var(--muted)" }}>{p.total_matches}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

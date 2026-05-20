@@ -1,39 +1,56 @@
-// src/App.tsx
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
-import Leaderboard  from "./pages/Leaderboard";
-import MatchHistory from "./pages/MatchHistory";
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Sidebar   from "./components/Sidebar";
+import Topbar    from "./components/Topbar";
+import Login     from "./pages/Login";
+import Overview  from "./pages/Overview";
+import Leaderboard from "./pages/Leaderboard";
+import Matches   from "./pages/Matches";
+import Analytics from "./pages/Analytics";
+import Players   from "./pages/Players";
+import Admin     from "./pages/Admin";
 
-function Navbar() {
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-      isActive
-        ? "bg-red-600 text-white"
-        : "text-gray-400 hover:text-white hover:bg-gray-700"
-    }`;
+const PAGE_TITLES: Record<string, string> = {
+  "/":            "TABLEAU DE BORD",
+  "/leaderboard": "CLASSEMENT GLOBAL",
+  "/matches":     "HISTORIQUE DES PARTIES",
+  "/analytics":   "ANALYTICS",
+  "/players":     "GESTION JOUEURS",
+  "/admin":       "PANEL ADMIN",
+};
+
+function Dashboard({ onLogout }: { onLogout: () => void }) {
+  const path = window.location.pathname;
+  const title = PAGE_TITLES[path] ?? "WARZONE";
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-700 px-6 py-3 flex items-center gap-6">
-      <span className="text-white font-black text-xl tracking-wider mr-4">
-        ⚔ WARZONE
-      </span>
-      <NavLink to="/"        className={linkClass}>Classement</NavLink>
-      <NavLink to="/matches" className={linkClass}>Parties</NavLink>
-    </nav>
+    <div>
+      <Sidebar onLogout={onLogout} apiOnline={true} />
+      <div style={{ marginLeft: 240, minHeight: "100vh", position: "relative", zIndex: 1 }}>
+        <Topbar title={title} apiOnline={true} />
+        <Routes>
+          <Route path="/"            element={<Overview />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/matches"     element={<Matches />} />
+          <Route path="/analytics"   element={<Analytics />} />
+          <Route path="/players"     element={<Players />} />
+          <Route path="/admin"       element={<Admin />} />
+          <Route path="*"            element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </div>
   );
 }
 
 export default function App() {
+  const [logged, setLogged] = useState(false);
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <Navbar />
-        <main className="py-4">
-          <Routes>
-            <Route path="/"        element={<Leaderboard />} />
-            <Route path="/matches" element={<MatchHistory />} />
-          </Routes>
-        </main>
-      </div>
+      {logged
+        ? <Dashboard onLogout={() => setLogged(false)} />
+        : <Login onLogin={() => setLogged(true)} />
+      }
     </BrowserRouter>
   );
 }
